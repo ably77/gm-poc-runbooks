@@ -731,8 +731,6 @@ kind: RouteTable
 metadata:
   name: httpbin
   namespace: httpbin
-  labels:
-    expose: "true"
 spec:
   hosts:
     - '*'
@@ -823,8 +821,6 @@ kind: RouteTable
 metadata:
   name: httpbin
   namespace: httpbin
-  labels:
-    expose: "true"
 spec:
   hosts:
     - '*'
@@ -874,8 +870,6 @@ kind: ExternalService
 metadata:
   name: httpbin-org
   namespace: httpbin
-  labels:
-    expose: "true"
 spec:
   hosts:
   - httpbin.org
@@ -899,8 +893,6 @@ kind: RouteTable
 metadata:
   name: httpbin
   namespace: httpbin
-  labels:
-    expose: "true"
 spec:
   hosts:
     - '*'
@@ -948,8 +940,6 @@ kind: RouteTable
 metadata:
   name: httpbin
   namespace: httpbin
-  labels:
-    expose: "true"
 spec:
   hosts:
     - '*'
@@ -1036,8 +1026,6 @@ kind: RouteTable
 metadata:
   name: httpbin
   namespace: httpbin
-  labels:
-    expose: "true"
 spec:
   hosts:
     - '*'
@@ -1095,8 +1083,6 @@ kind: RouteTable
 metadata:
   name: httpbin
   namespace: httpbin
-  labels:
-    expose: "true"
 spec:
   hosts:
     - '*'
@@ -1145,8 +1131,6 @@ kind: RouteTable
 metadata:
   name: httpbin
   namespace: httpbin
-  labels:
-    expose: "true"
 spec:
   hosts:
     - '*'
@@ -1301,8 +1285,6 @@ kind: RouteTable
 metadata:
   name: httpbin
   namespace: httpbin
-  labels:
-    expose: "true"
 spec:
   hosts:
     - '*'
@@ -1445,8 +1427,6 @@ kind: RouteTable
 metadata:
   name: httpbin
   namespace: httpbin
-  labels:
-    expose: "true"
 spec:
   hosts:
     - '*'
@@ -1503,8 +1483,6 @@ kind: RouteTable
 metadata:
   name: httpbin
   namespace: httpbin
-  labels:
-    expose: "true"
 spec:
   hosts:
     - '*'
@@ -1673,8 +1651,6 @@ kind: RouteTable
 metadata:
   name: httpbin
   namespace: httpbin
-  labels:
-    expose: "true"
 spec:
   hosts:
     - '*'
@@ -1987,8 +1963,6 @@ kind: ExternalService
 metadata:
   name: oidc-jwks
   namespace: httpbin
-  labels:
-    expose: "true"
 spec:
   hosts:
   - oidc-jwks.external
@@ -2553,8 +2527,6 @@ kind: RouteTable
 metadata:
   name: httpbin
   namespace: httpbin
-  labels:
-    expose: "true"
 spec:
   hosts:
     - '*'
@@ -2674,8 +2646,6 @@ kubectl apply --context ${MGMT} -f- <<EOF
 apiVersion: networking.gloo.solo.io/v2
 kind: RouteTable
 metadata:
-  labels:
-    expose: "true"
   name: gm-ui-rt
   namespace: gloo-mesh
 spec:
@@ -2726,8 +2696,6 @@ kubectl apply --context ${MGMT} -f- <<EOF
 apiVersion: networking.gloo.solo.io/v2
 kind: RouteTable
 metadata:
-  labels:
-    expose: "true"
   name: gm-ui-rt
   namespace: gloo-mesh
 spec:
