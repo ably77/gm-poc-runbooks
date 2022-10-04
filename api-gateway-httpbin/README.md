@@ -1530,7 +1530,7 @@ In this step, we're going to secure the access to the `httpbin` service using OA
 ### In your OIDC Provider
 Once the app has been configured in the external OIDC, we need to create a Kubernetes Secret that contains the OIDC client-secret. Please provide this value input before running the command below:
 ```bash
-export HTTPBIN_CLIENT_SECRET="<provide OIDC client secret here>"
+export HTTPBIN_CLIENT_SECRET="3cMS-DdmZH0UoHHRWgfWlNzHjTjty56DPaB66Mv2"
 ```
 
 ```bash
@@ -1555,9 +1555,9 @@ echo $APP_CALLBACK_URL
 
 Lastly, replace the `OICD_CLIENT_ID` and `ISSUER_URL` values below with your OIDC app settings, in a later lab we will also use the `JWKS_URI` endpoint so we can just set it now as well
 ```bash
-export OIDC_CLIENT_ID="solo-poc-clientid"
-export ISSUER_URL="https://idam.gehealthcloud.io:443/t/solopocapp.group.app/oauth2/token"
-export JWKS_URI="https://idam.gehealthcloud.io:443/t/solopocapp.group.app/oauth2/jwks"
+export OIDC_CLIENT_ID="0oa6qvzybcVCK6PcS5d7"
+export ISSUER_URL="https://dev-22653158.okta.com/oauth2/default"
+export JWKS_URI="https://dev-22653158.okta.com/oauth2/default/v1/keys/"
 ```
 
 Let's make sure our variables are set correctly:
@@ -1600,7 +1600,7 @@ spec:
             session:
               failOnFetchFailure: true
               redis:
-                cookieName: gehc-session
+                cookieName: oidc-session
                 options:
                   host: redis.gloo-mesh-addons:6379
                 allowRefreshing: true
