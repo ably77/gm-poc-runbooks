@@ -1691,7 +1691,7 @@ You can also perform authorization using OPA. Gloo Mesh's OPA integration popula
 - `input.state.jwt` - When the OIDC auth plugin is utilized, the token retrieved during the OIDC flow is placed into this field. 
 
 ## Lab
-In this lab, we will make use of the `input.http_request` parameter in our OPA policies to decode the `jwt` token retrieved in the last lab and create policies using the claims available, namely the `sub` and `email` claims.
+In this lab, we will make use of the `input.http_request` parameter in our OPA policies to decode the `jwt` token retrieved in the last lab and create policies using the claims available, namely the `` and `email` claims.
 
 Instead of coupling the `oauth2` config with the `opa` config in a single `ExtAuthPolicy`, here we will separate the app to decouple the APIs from apps
 
@@ -1870,7 +1870,7 @@ Now we should be able to access our app again.
 ### Enforce paths with OPA
 Let's continue to expand on our example by enforcing a specified path for our users
 
-Here we will modify our rego rule so that users with the `sub` claim containing `@solo.io` can access the `/get` endpoint as well as any path with the prefix `/anything`, while users with the `email` claim containing `@gmail.com` can only access specifically the `/anything/protected` endpoint
+Here we will modify our rego rule so that users with the `name` claim containing `@solo.io` can access the `/get` endpoint as well as any path with the prefix `/anything`, while users with the `email` claim containing `@gmail.com` can only access specifically the `/anything/protected` endpoint
 ```bash
 kubectl --context ${MGMT} apply -f - <<EOF
 apiVersion: v1
@@ -1919,7 +1919,7 @@ kubectl --context ${MGMT} -n httpbin delete ExtAuthPolicy httpbin-opa
 ```
 
 ## Lab 13 - Use the JWT filter to create headers from claims <a name="Lab-13"></a>
-In this step, we're going to validate the JWT token and to create a new header from the `email` or `sub` claim. By doing so, we can gain a few benefits:
+In this step, we're going to validate the JWT token and to create a new header from the `email` or `name` claim. By doing so, we can gain a few benefits:
 - Simplified OPA policies
 - JWT token doesn’t need to be passed along to backend and to OPA server (optional)            
 - JWT policy can do JWT token level validations upfront and then extract claims and pass them as arbitrary headers to the backend. Rego policies are then simpler and can deal with these validated headers for RBAC decisions rather than decoding them from JWT.
@@ -2026,7 +2026,7 @@ kubectl --context ${MGMT} apply -f - <<EOF
 apiVersion: trafficcontrol.policy.gloo.solo.io/v2
 kind: TransformationPolicy
 metadata:
-  name: modify-x-sub-header
+  name: modify-x-email-header
   namespace: httpbin
 spec:
   applyToRoutes:
@@ -2508,7 +2508,7 @@ kubectl --context ${MGMT} -n httpbin delete externalendpoint oidc-jwks
 kubectl --context ${MGMT} -n httpbin delete jwtpolicy httpbin
 
 # transformation
-kubectl --context ${MGMT} -n httpbin delete transformationpolicy modify-x-sub-header
+kubectl --context ${MGMT} -n httpbin delete transformationpolicy modify-x-email-header
 ```
 
 Then let's apply the original `RouteTable` yaml:
