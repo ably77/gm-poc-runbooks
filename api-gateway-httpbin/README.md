@@ -1177,8 +1177,6 @@ kubectl --context ${MGMT} apply -f - <<EOF
 apiVersion: trafficcontrol.policy.gloo.solo.io/v2
 kind: RateLimitClientConfig
 metadata:
-  labels:
-    workspace.solo.io/exported: "true"
   name: httpbin
   namespace: httpbin
 spec:
@@ -1198,8 +1196,6 @@ kubectl --context ${MGMT} apply -f - <<EOF
 apiVersion: admin.gloo.solo.io/v2
 kind: RateLimitServerConfig
 metadata:
-  labels:
-    workspace.solo.io/exported: "true"
   name: httpbin
   namespace: gloo-mesh-addons
 spec:
@@ -1229,8 +1225,6 @@ kubectl --context ${MGMT} apply -f - <<EOF
 apiVersion: trafficcontrol.policy.gloo.solo.io/v2
 kind: RateLimitPolicy
 metadata:
-  labels:
-    workspace.solo.io/exported: "true"
   name: httpbin
   namespace: httpbin
 spec:
@@ -1261,8 +1255,6 @@ kubectl --context ${MGMT} apply -f - <<EOF
 apiVersion: admin.gloo.solo.io/v2
 kind: RateLimitServerSettings
 metadata:
-  labels:
-    workspace.solo.io/exported: "true"
   name: rate-limit-server
   namespace: httpbin
 spec:
