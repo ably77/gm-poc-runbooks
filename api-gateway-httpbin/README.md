@@ -1761,14 +1761,14 @@ Now we should see success when logging in with a username that ends with `@solo.
 If you decode the JWT provided (using jwt.io for example), we can see other claims available
 ```
 {
-  "name": "alex",
-  "email": "alex.ly@solo.io"
+  "name": "jdoe",
+  "email": "jdoe@solo.io"
 }
 ```
 
 We can modify our rego rule to apply policy to map to `name` as well as `email` claims. 
 
-The rego rule below uses two `allow {` rules creates an `OR`. So in the below example, we are allowing the claim `email: @solo.i` OR `name: alex`. Note that we are intentionally setting `@solo.i` to show the OR functionality in this example. 
+The rego rule below uses two `allow {` rules creates an `OR`. So in the below example, we are allowing the claim `email: @solo.i` OR `name: jdoe`. Note that we are intentionally setting `@solo.i` to show the OR functionality in this example. 
 
 ```bash
 kubectl --context ${MGMT} apply -f - <<EOF
@@ -1789,7 +1789,7 @@ data:
     }
     allow {
         [header, payload, signature] = io.jwt.decode(input.http_request.headers.jwt)
-        endswith(payload["name"], "alex")
+        endswith(payload["name"], "jdoe")
     }
 EOF
 ```
