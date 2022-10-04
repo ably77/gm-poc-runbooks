@@ -1509,7 +1509,7 @@ kubectl --context ${MGMT} -n httpbin delete externalservice httpbin-not-in-mesh
 # rate limiting
 kubectl --context ${MGMT} -n httpbin delete ratelimitpolicy httpbin
 kubectl --context ${MGMT} -n httpbin delete ratelimitclientconfig httpbin
-kubectl --context ${MGMT} -n httpbin delete ratelimitserverconfig httpbin
+kubectl --context ${MGMT} -n gloo-mesh-addons delete ratelimitserverconfig httpbin
 kubectl --context ${MGMT} -n httpbin delete ratelimitserversettings rate-limit-server
 
 # transformation
