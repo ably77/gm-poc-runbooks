@@ -1527,6 +1527,29 @@ In this step, we're going to secure the access to the `httpbin` service using OA
 - configuring the `RouteTable` with a specified label (i.e. `oauth: "true"`)
 ```
 
+### Provided Okta Credentials
+Starting a new Okta Developer Account is free and easy to use, but for the purposes of this runbook you can either modify the Okta specific parameters for your own IDAM setup, or if you would like you can also use the example as is. A test credential is provided below with the following users:
+```
+Username: jdoe@solo.io
+Password: gloomesh
+
+Username: jdoe@gmail.com
+Password: gloomesh1
+```
+
+### Modifying /etc/hosts
+If using the credentials above, the redirect URIs in Okta are set to the `httpbin-local.glootest.com` domain. To use this directly, it would be recommended to modify your `/etc/hosts` file with the following entry
+
+If using Cloud:
+```
+<LB IP Address> httpbin-local.glootest.com
+```
+
+If running locally (for example on k3d) with loadbalancer integration to localhost on 80/443:
+```
+127.0.0.1 localhost httpbin-local.glootest.com
+```
+
 ### In your OIDC Provider
 Once the app has been configured in the external OIDC, we need to create a Kubernetes Secret that contains the OIDC client-secret. Please provide this value input before running the command below:
 ```bash
@@ -1677,7 +1700,7 @@ spec:
 EOF
 ```
 
-Now when you access your httpbin app through the browser, it will be protected by the OIDC provider login page
+Now when you access your httpbin app through the browser, it will be protected by the OIDC provider login page. Login with the credentials provided above
 ```
 echo "${APP_CALLBACK_URL}/get"
 ```
