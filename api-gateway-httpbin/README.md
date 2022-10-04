@@ -2298,7 +2298,7 @@ EOF
 
 And create the client secret if it doesn't exist already
 ```bash
-export HTTPBIN_CLIENT_SECRET="<provide OIDC client secret here>"
+export HTTPBIN_CLIENT_SECRET="3cMS-DdmZH0UoHHRWgfWlNzHjTjty56DPaB66Mv2"
 ```
 
 ```bash
