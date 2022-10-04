@@ -940,29 +940,7 @@ This diagram shows our new flow
 ![Gloo Mesh External Service](images/runbook4a.png)
 
 ### Exposing a service external to the mesh, but in-cluster
-Similar to the exercise above, we can also expose services that are external to the mesh but in-cluster with the same workflow using `ExternalService` and modifying our `RouteTable`
-
-Let's give this a go for our httpbin service `not-in-mesh`. Notice that in this case I am using the fqdn of our local `not-in-mesh` service that is in-cluster for the `ExternalService`
-```bash
-kubectl --context ${MGMT} apply -f - <<EOF
-apiVersion: networking.gloo.solo.io/v2
-kind: ExternalService
-metadata:
-  name: httpbin-not-in-mesh
-  namespace: httpbin
-  labels:
-    expose: "true"
-spec:
-  hosts:
-  - not-in-mesh.httpbin
-  ports:
-  - name: https
-    number: 8000
-    protocol: HTTPS
-EOF
-```
-
-Now we can route to our `httpbin-not-in-mesh` external service by modifying our route table
+Gloo Gateway can be leveraged for workloads that are not yet a part of the service mesh. You can simply route to a discovered destination, such as `httpbin-not-in-mesh` in this example. 
 ```bash
 kubectl --context ${MGMT} apply -f - <<EOF
 apiVersion: networking.gloo.solo.io/v2
@@ -989,12 +967,11 @@ spec:
           prefix: /anything
       forwardTo:
         destinations:
-        - kind: EXTERNAL_SERVICE
+        - ref:
+            name: not-in-mesh
+            namespace: httpbin
           port:
             number: 8000
-          ref:
-            name: httpbin-not-in-mesh
-            namespace: httpbin
 EOF
 ```
 
@@ -1005,14 +982,52 @@ Get the URL to access the `httpbin` service using the following command:
 echo "https://${ENDPOINT_HTTPS_GW_MGMT}/get"
 ```
 
-Note that when the response comes from the external service `not-in-mesh`, there is no longer an `X-Amzn-Trace-Id` header. And when the response comes from the local service, there's a `X-B3-Spanid` header.
+Note that when the response comes from the external service `not-in-mesh`, there is no longer an `X-Amzn-Trace-Id` header which was served from httpbin.org.
 
+Also note that by default some headers with the prefix `X-B3` and `X-Envoy` were added to the response. For example:
+```
+{
+  "args": {}, 
+  "headers": {
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9", 
+    "Accept-Encoding": "gzip, deflate, br", 
+    "Accept-Language": "en-US,en;q=0.9", 
+    "Cache-Control": "max-age=0", 
+    "Host": "httpbin-local.glootest.com", 
+    "Sec-Ch-Ua": "\"Google Chrome\";v=\"105\", \"Not)A;Brand\";v=\"8\", \"Chromium\";v=\"105\"", 
+    "Sec-Ch-Ua-Mobile": "?0", 
+    "Sec-Ch-Ua-Platform": "\"macOS\"", 
+    "Sec-Fetch-Dest": "document", 
+    "Sec-Fetch-Mode": "navigate", 
+    "Sec-Fetch-Site": "none", 
+    "Sec-Fetch-User": "?1", 
+    "Upgrade-Insecure-Requests": "1", 
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36", 
+    "X-B3-Sampled": "0", 
+    "X-B3-Spanid": "fe4885604018105a", 
+    "X-B3-Traceid": "34059e538e442469fe4885604018105a", 
+    "X-Envoy-Attempt-Count": "1", 
+    "X-Envoy-Decorator-Operation": "not-in-mesh.httpbin.svc.cluster.local:8000/get", 
+    "X-Envoy-Internal": "true", 
+    "X-Envoy-Peer-Metadata": "ChQKDkFQUF9DT05UQUlORVJTEgIaAAoUCgpDTFVTVEVSX0lEEgYaBG1nbXQKHgoNSVNUSU9fVkVSU0lPThINGgsxLjEzLjQtc29sbwqlAwoGTEFCRUxTEpoDKpcDCh0KA2FwcBIWGhRpc3Rpby1pbmdyZXNzZ2F0ZXdheQo2CilpbnN0YWxsLm9wZXJhdG9yLmlzdGlvLmlvL293bmluZy1yZXNvdXJjZRIJGgd1bmtub3duChkKBWlzdGlvEhAaDmluZ3Jlc3NnYXRld2F5ChYKDGlzdGlvLmlvL3JldhIGGgQxLTEzCjAKG29wZXJhdG9yLmlzdGlvLmlvL2NvbXBvbmVudBIRGg9JbmdyZXNzR2F0ZXdheXMKIQoRcG9kLXRlbXBsYXRlLWhhc2gSDBoKODQ2Zjg1ZDY0Ygo5Ch9zZXJ2aWNlLmlzdGlvLmlvL2Nhbm9uaWNhbC1uYW1lEhYaFGlzdGlvLWluZ3Jlc3NnYXRld2F5Ci8KI3NlcnZpY2UuaXN0aW8uaW8vY2Fub25pY2FsLXJldmlzaW9uEggaBmxhdGVzdAohChdzaWRlY2FyLmlzdGlvLmlvL2luamVjdBIGGgR0cnVlCicKGXRvcG9sb2d5LmlzdGlvLmlvL25ldHdvcmsSChoIbmV0d29yazEKEgoHTUVTSF9JRBIHGgVtZXNoMQovCgROQU1FEicaJWlzdGlvLWluZ3Jlc3NnYXRld2F5LTg0NmY4NWQ2NGItcWN6OG4KHQoJTkFNRVNQQUNFEhAaDmlzdGlvLWdhdGV3YXlzCl8KBU9XTkVSElYaVGt1YmVybmV0ZXM6Ly9hcGlzL2FwcHMvdjEvbmFtZXNwYWNlcy9pc3Rpby1nYXRld2F5cy9kZXBsb3ltZW50cy9pc3Rpby1pbmdyZXNzZ2F0ZXdheQoXChFQTEFURk9STV9NRVRBREFUQRICKgAKJwoNV09SS0xPQURfTkFNRRIWGhRpc3Rpby1pbmdyZXNzZ2F0ZXdheQ==", 
+    "X-Envoy-Peer-Metadata-Id": "router~10.42.0.7~istio-ingressgateway-846f85d64b-qcz8n.istio-gateways~istio-gateways.svc.cluster.local"
+  }, 
+  "origin": "10.42.0.1", 
+  "url": "https://httpbin-local.glootest.com/get"
+}
+```
+
+## Scenario
+Let's mimic a scenario as follows:
+- The current application exists as an external application, external to the cluster (in this case, httpbin.org)
+- The development team has containerized the external solution and has deployed it in the cluster, but the service is not currently a part of the mesh
+- The platform team currently exploring Service Mesh capabilities is testing whether the application can run on the mesh, but wants to do so incrementally
 
 ### Apply Weighted Destinations to Validate Behavior
 Let's update the `RouteTable` to direct
--  30% of the traffic to the external httpbin service at httpbin.org
--  40% of the traffic to the local `not-in-mesh` httpbin service
--  30% of the traffic to the local `in-mesh` httpbin service
+-  40% of the traffic to the external httpbin service at httpbin.org
+-  50% of the traffic to the local `not-in-mesh` httpbin service
+-  10% of the traffic to the local `in-mesh` httpbin service
 
 ```bash
 kubectl --context ${MGMT} apply -f - <<EOF
@@ -1046,35 +1061,83 @@ spec:
           ref:
             name: httpbin-org
             namespace: httpbin
-          weight: 30
-        - kind: EXTERNAL_SERVICE
+          weight: 40
+        - ref:
+            name: not-in-mesh
+            namespace: httpbin
           port:
             number: 8000
-          ref:
-            name: httpbin-not-in-mesh
-            namespace: httpbin
-          weight: 40
+          weight: 50
         - ref:
             name: in-mesh
             namespace: httpbin
           port:
             number: 8000
-          weight: 30
+          weight: 10
 EOF
 ```
 
 If you refresh your browser, you should see that you get a response either from the local services `in-mesh` or `not-in-mesh` or from the external service at httpbin.org. You can validate the behavior below:
 
 - When the response comes from the external service `httpbin-org`, there a `X-Amzn-Trace-Id` header
-- When the response comes from the external service `not-in-mesh`, there is no longer an `X-Amzn-Trace-Id` header. And when the response comes from the local service, there's a `X-B3-Spanid` header.
+- When the response comes from the external service `not-in-mesh`, there is no longer an `X-Amzn-Trace-Id` header. And when the response comes from the local service, there are `X-Envoy` and `X-B3` headers added to the response
 - When the response comes from the external service `in-mesh`, there is an additional `X-Forwarded-Client-Cert` that contains the SPIFFE ID which is used to validate mTLS
 
 This diagram shows our current setup with weighted routing
 ![Gloo Mesh External Service](images/runbook5a.png)
 
-### Canary to in-mesh service
-Finally, you can update the `RouteTable` to direct all the traffic to the local `httpbin` service:
+### Canary to the not-in-mesh service from the External Service
+As we phase out the external service and move more traffic to the `not-in-mesh` cluster service, we can do so incrementally. At the same time, the platform team can continue testing how the application works in the mesh as well.
+```bash
+kubectl --context ${MGMT} apply -f - <<EOF
+apiVersion: networking.gloo.solo.io/v2
+kind: RouteTable
+metadata:
+  name: httpbin
+  namespace: httpbin
+  labels:
+    expose: "true"
+spec:
+  hosts:
+    - '*'
+  virtualGateways:
+    - name: north-south-gw-443
+      namespace: istio-gateways
+      cluster: mgmt
+  workloadSelectors: []
+  http:
+    - name: httpbin
+      matchers:
+      - uri:
+          exact: /get
+      - uri:
+          prefix: /anything
+      forwardTo:
+        destinations:
+        - kind: EXTERNAL_SERVICE
+          port:
+            number: 443
+          ref:
+            name: httpbin-org
+            namespace: httpbin
+          weight: 0
+        - ref:
+            name: not-in-mesh
+            namespace: httpbin
+          port:
+            number: 8000
+          weight: 80
+        - ref:
+            name: in-mesh
+            namespace: httpbin
+          port:
+            number: 8000
+          weight: 20
+EOF
+```
 
+### Canary to the in-mesh service
+As the team builds confidence in the value provided by the mesh (and there's even more to be shown in the subsequent labs!) we can direct full traffic to our workload in the mesh
 ```bash
 kubectl --context ${MGMT} apply -f - <<EOF
 apiVersion: networking.gloo.solo.io/v2
@@ -1106,10 +1169,17 @@ spec:
             namespace: httpbin
           port:
             number: 8000
+          weight: 100
 EOF
 ```
 
-If you refresh your browser, you should see that you get responses only from the local service `in-mesh`.
+If you refresh your browser, you should see that you get responses only from the local service `in-mesh`. As noted before there is an additional `X-Forwarded-Client-Cert` that contains the SPIFFE ID which is used to validate mTLS
+
+You can now even remove the `not-in-mesh` deployment and `httpbin-org` external service
+```
+kubectl --context ${MGMT} -n httpbin delete deployment not-in-mesh
+kubectl --context ${MGMT} -n httpbin delete externalservice httpbin-org
+```
 
 ## Lab 8 - Implement Rate Limiting policy on httpbin <a name="Lab-8"></a>
 In this lab, lets explore adding rate limiting to our httpbin route
