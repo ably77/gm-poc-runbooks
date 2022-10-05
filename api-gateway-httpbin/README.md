@@ -1569,12 +1569,17 @@ data:
 EOF
 ```
 
-Set the callback URL in your OIDC provider to map to our httpbin app
-```bash
-export APP_CALLBACK_URL="https://$(kubectl --context ${MGMT} -n istio-gateways get svc istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].*}')"
-
-echo $APP_CALLBACK_URL
+Set the callback URL in your OIDC provider to map to our httpbin app. If you are using the provided example set the `APP_CALLBACK_URL` to `https://httpbin-local.glootest.com`
 ```
+export APP_CALLBACK_URL="https://httpbin-local.glootest.com"
+```
+
+>If you are using your own OIDC configuration, the example below may help you discover and set your `APP_CALLBACK_URL` variable
+>```bash
+>export APP_CALLBACK_URL="https://$(kubectl --context ${MGMT} -n istio-gateways get svc istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].*}')"
+>
+>echo $APP_CALLBACK_URL
+>```
 
 Lastly, replace the `OICD_CLIENT_ID` and `ISSUER_URL` values below with your OIDC app settings, in a later lab we will also use the `JWKS_URI` endpoint so we can just set it now as well
 ```bash
