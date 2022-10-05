@@ -15,8 +15,8 @@ source ./scripts/assert.sh
 * [Lab 0 - Prerequisites](#Lab-0)
 * [Lab 1 - Setting up your Environment Variables](#Lab-1)
 * [Lab 2 - Deploy Istio](#Lab-2)
-* [Lab 3 - Deploy our httpbin demo apps](#Lab-3)
-* [Lab 4 - Deploy and register Gloo Mesh](#Lab-4)
+* [Lab 3 - Deploy and register Gloo Mesh and Gloo Mesh Addons](#Lab-3)
+* [Lab 4 - Deploy our httpbin demo apps](#Lab-4)
 * [Lab 5 - Create Gloo Mesh Workspaces](#Lab-5)
 * [Lab 6 - Expose httpbin through a gateway](#Lab-6)
 * [Lab 7 - Expose an external service](#Lab-7)
@@ -274,127 +274,7 @@ echo $ENDPOINT_HTTPS_GW_MGMT
 > EOF
 > ```
 
-## Lab 3 - Deploy our httpbin demo apps <a name="Lab-3"></a>
-We're going to deploy the httpbin application to demonstrate several features of Istio and Gloo Mesh.
-
-You can find more information about the httpbin application [here](https://github.com/postmanlabs/httpbin)
-
-Run the following commands to deploy the httpbin app on `mgmt` twice.
-
-The first version will be called `not-in-mesh` and won't have the sidecar injected (because we don't label the namespace).
-```bash
-kubectl --context ${MGMT} create ns httpbin
-
-kubectl --context ${MGMT} apply -n httpbin -f - <<EOF
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: not-in-mesh
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: not-in-mesh
-  labels:
-    app: not-in-mesh
-    service: not-in-mesh
-spec:
-  ports:
-  - name: http
-    port: 8000
-    targetPort: 80
-  selector:
-    app: not-in-mesh
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: not-in-mesh
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: not-in-mesh
-      version: v1
-  template:
-    metadata:
-      labels:
-        app: not-in-mesh
-        version: v1
-    spec:
-      serviceAccountName: not-in-mesh
-      containers:
-      - image: docker.io/kennethreitz/httpbin
-        imagePullPolicy: IfNotPresent
-        name: not-in-mesh
-        ports:
-        - containerPort: 80
-EOF
-```
-
-The second version will be called `in-mesh` and will have the sidecar injected (because of the label `istio.io/rev` in the Pod template).
-```bash
-kubectl --context ${MGMT} apply -n httpbin -f - <<EOF
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: in-mesh
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: in-mesh
-  labels:
-    app: in-mesh
-    service: in-mesh
-spec:
-  ports:
-  - name: http
-    port: 8000
-    targetPort: 80
-  selector:
-    app: in-mesh
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: in-mesh
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: in-mesh
-      version: v1
-  template:
-    metadata:
-      labels:
-        app: in-mesh
-        version: v1
-        istio.io/rev: 1-13
-    spec:
-      serviceAccountName: in-mesh
-      containers:
-      - image: docker.io/kennethreitz/httpbin
-        imagePullPolicy: IfNotPresent
-        name: in-mesh
-        ports:
-        - containerPort: 80
-EOF
-```
-
-You can check that the app is running using
-```
-kubectl --context ${MGMT} -n httpbin get pods
-```
-
-Output should look similar to below
-```
-NAME                           READY   STATUS    RESTARTS   AGE
-in-mesh-5d9d9549b5-qrdgd       2/2     Running   0          11s
-not-in-mesh-5c64bb49cd-m9kwm   1/1     Running   0          11s
-```
-
-## Lab 4 - Deploy and register Gloo Mesh <a name="Lab-4"></a>
+## Lab 3 - Deploy and register Gloo Mesh and Gloo Mesh Addons <a name="Lab-3"></a>
 
 ### Install the meshctl CLI
 First of all, let's install the `meshctl` CLI which will provide us some added functionality for interacting with Gloo Mesh
@@ -591,6 +471,126 @@ helm upgrade --install gloo-mesh-agent-addons gloo-mesh-agent/gloo-mesh-agent \
   --set rate-limiter.enabled=true \
   --set ext-auth-service.enabled=true \
   --version 2.1.0-beta29
+```
+
+## Lab 4 - Deploy our httpbin demo apps <a name="Lab-4"></a>
+We're going to deploy the httpbin application to demonstrate several features of Istio and Gloo Mesh.
+
+You can find more information about the httpbin application [here](https://github.com/postmanlabs/httpbin)
+
+Run the following commands to deploy the httpbin app on `mgmt` twice.
+
+The first version will be called `not-in-mesh` and won't have the sidecar injected (because we don't label the namespace).
+```bash
+kubectl --context ${MGMT} create ns httpbin
+
+kubectl --context ${MGMT} apply -n httpbin -f - <<EOF
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: not-in-mesh
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: not-in-mesh
+  labels:
+    app: not-in-mesh
+    service: not-in-mesh
+spec:
+  ports:
+  - name: http
+    port: 8000
+    targetPort: 80
+  selector:
+    app: not-in-mesh
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: not-in-mesh
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: not-in-mesh
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: not-in-mesh
+        version: v1
+    spec:
+      serviceAccountName: not-in-mesh
+      containers:
+      - image: docker.io/kennethreitz/httpbin
+        imagePullPolicy: IfNotPresent
+        name: not-in-mesh
+        ports:
+        - containerPort: 80
+EOF
+```
+
+The second version will be called `in-mesh` and will have the sidecar injected (because of the label `istio.io/rev` in the Pod template).
+```bash
+kubectl --context ${MGMT} apply -n httpbin -f - <<EOF
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: in-mesh
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: in-mesh
+  labels:
+    app: in-mesh
+    service: in-mesh
+spec:
+  ports:
+  - name: http
+    port: 8000
+    targetPort: 80
+  selector:
+    app: in-mesh
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: in-mesh
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: in-mesh
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: in-mesh
+        version: v1
+        istio.io/rev: 1-13
+    spec:
+      serviceAccountName: in-mesh
+      containers:
+      - image: docker.io/kennethreitz/httpbin
+        imagePullPolicy: IfNotPresent
+        name: in-mesh
+        ports:
+        - containerPort: 80
+EOF
+```
+
+You can check that the app is running using
+```
+kubectl --context ${MGMT} -n httpbin get pods
+```
+
+Output should look similar to below
+```
+NAME                           READY   STATUS    RESTARTS   AGE
+in-mesh-5d9d9549b5-qrdgd       2/2     Running   0          11s
+not-in-mesh-5c64bb49cd-m9kwm   1/1     Running   0          11s
 ```
 
 ## Lab 5 - Create Gloo Mesh Workspaces <a name="Lab-5"></a>
