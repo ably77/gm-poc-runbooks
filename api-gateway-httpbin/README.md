@@ -1574,6 +1574,7 @@ Set the callback URL in your OIDC provider to map to our httpbin app. If you are
 export APP_CALLBACK_URL="https://httpbin-local.glootest.com"
 ```
 
+>### If using your own OIDC Configuration
 >If you are using your own OIDC configuration, the example below may help you discover and set your `APP_CALLBACK_URL` variable
 >```bash
 >export APP_CALLBACK_URL="https://$(kubectl --context ${MGMT} -n istio-gateways get svc istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].*}')"
