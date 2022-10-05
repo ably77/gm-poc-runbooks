@@ -1814,7 +1814,7 @@ data:
 
     allow {
         [header, payload, signature] = io.jwt.decode(input.http_request.headers.jwt)
-        endswith(payload["email"], "@solo.io")
+        endswith(payload["email"], "@solo.i")
     }
     allow {
         [header, payload, signature] = io.jwt.decode(input.http_request.headers.jwt)
